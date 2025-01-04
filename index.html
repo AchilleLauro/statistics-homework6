@@ -20,11 +20,11 @@
         <ul>
             <li>
                 <strong>First Part:</strong> If <span class="formula">F(x)</span> is an antiderivative of <span class="formula">f(x)</span>, then:
-                <pre>\( \frac{d}{dx} \int_a^x f(t) \, dt = f(x) \)</pre>
+                <p>\( \frac{d}{dx} \int_a^x f(t) \, dt = f(x) \)</p>
             </li>
             <li>
                 <strong>Second Part:</strong> If <span class="formula">f(x)</span> is continuous on <span class="formula">[a, b]</span>, then:
-                <pre>\( \int_a^b f(x) \, dx = F(b) - F(a) \)</pre>
+                <p>\( \int_a^b f(x) \, dx = F(b) - F(a) \)</p>
             </li>
         </ul>
     </section>
@@ -35,13 +35,13 @@
 
         <h3>Cumulative Distribution Function (CDF)</h3>
         <p>The CDF, denoted as <code>F(x)</code>, represents the probability that a random variable <code>X</code> takes a value less than or equal to <code>x</code>:</p>
-        <pre>\( F(x) = P(X \leq x) \)</pre>
+        <p>\( F(x) = P(X \leq x) \)</p>
         <p>It is defined as the integral of the PDF <code>f(t)</code>:</p>
-        <pre>\( F(x) = \int_{-\infty}^x f(t) \, dt \)</pre>
+        <p>\( F(x) = \int_{-\infty}^x f(t) \, dt \)</p>
 
         <h3>Probability Density Function (PDF)</h3>
         <p>The PDF, denoted as <code>f(x)</code>, is obtained by differentiating the CDF:</p>
-        <pre>\( f(x) = \frac{d}{dx} F(x) \)</pre>
+        <p>\( f(x) = \frac{d}{dx} F(x) \)</p>
     </section>
 
     <section>
@@ -50,21 +50,21 @@
         <div class="example">
             <h3>Example 1: Standard Normal Distribution</h3>
             <p>The PDF of a standard normal distribution is:</p>
-            <pre>\( f(x) = \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} \)</pre>
+            <p>\( f(x) = \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} \)</p>
             <p>The corresponding CDF is:</p>
-            <pre>\( F(x) = \int_{-\infty}^x \frac{1}{\sqrt{2\pi}} e^{-\frac{t^2}{2}} \, dt \)</pre>
+            <p>\( F(x) = \int_{-\infty}^x \frac{1}{\sqrt{2\pi}} e^{-\frac{t^2}{2}} \, dt \)</p>
             <p>Differentiating the CDF gives the PDF:</p>
-            <pre>\( \frac{d}{dx} F(x) = f(x) \)</pre>
+            <p>\( \frac{d}{dx} F(x) = f(x) \)</p>
         </div>
 
         <div class="example">
             <h3>Example 2: Exponential Distribution</h3>
             <p>For an exponential random variable with rate parameter <code>\( \lambda \)</code>, the PDF is:</p>
-            <pre>\( f(x) = \lambda e^{-\lambda x}, \quad x \geq 0 \)</pre>
+            <p>\( f(x) = \lambda e^{-\lambda x}, \quad x \geq 0 \)</p>
             <p>The CDF is obtained by integrating the PDF:</p>
-            <pre>\( F(x) = \int_0^x \lambda e^{-\lambda t} \, dt = 1 - e^{-\lambda x} \)</pre>
+            <p>\( F(x) = \int_0^x \lambda e^{-\lambda t} \, dt = 1 - e^{-\lambda x} \)</p>
             <p>Differentiating the CDF gives back the PDF:</p>
-            <pre>\( \frac{d}{dx} F(x) = f(x) = \lambda e^{-\lambda x} \)</pre>
+            <p>\( \frac{d}{dx} F(x) = f(x) = \lambda e^{-\lambda x} \)</p>
         </div>
     </section>
 
@@ -72,7 +72,7 @@
         <h2>Key Insights and Applications</h2>
         <ul>
             <li><strong>Probabilities Over Intervals:</strong> Using the CDF, the probability that a random variable lies in an interval <code>[a, b]</code> is:</li>
-            <pre>\( P(a \leq X \leq b) = F(b) - F(a) \)</pre>
+            <p>\( P(a \leq X \leq b) = F(b) - F(a) \)</p>
 
             <li><strong>Statistical Inference:</strong> Many statistical methods rely on the PDF-CDF relationship, such as maximum likelihood estimation and hypothesis testing.</li>
 
