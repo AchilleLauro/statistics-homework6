@@ -1,24 +1,93 @@
 // Variabile globale per il grafico
 let myChart;
 
-// Funzione per tracciare il grafico
-function plotChart(values, theoretical, empirical) {
-    // Distruggi il grafico esistente, se presente
-    if (myChart) {
-        myChart.destroy();
+// Funzione per generare campioni empirici da una distribuzione teorica
+function generateEmpiricalData(values, probabilities, sampleSize) {
+    const empiricalData = [];
+    for (let i = 0; i < sampleSize; i++) {
+        const random = Math.random();
+        let cumulativeProbability = 0;
+        for (let j = 0; j < probabilities.length; j++) {
+            cumulativeProbability += probabilities[j];
+            if (random <= cumulativeProbability) {
+                empiricalData.push(values[j]);
+                break;
+            }
+        }
     }
+    return empiricalData;
+}
 
-    // Normalizza le probabilità teoriche (assicurati che sommino a 1)
+// Funzione per calcolare media e varianza dai dati simulati
+function calculateEmpiricalStats(data) {
+    let mean = 0;
+    let variance = 0;
+    const n = data.length;
+
+    // Calcolo della media
+    data.forEach((value) => {
+        mean += value;
+    });
+    mean /= n;
+
+    // Calcolo della varianza
+    data.forEach((value) => {
+        variance += Math.pow(value - mean, 2);
+    });
+    variance /= n;
+
+    return { mean, variance };
+}
+
+// Funzione per calcolare la media teorica
+function calculateMean(values, distribution, total) {
+    return values.reduce((sum, val, i) => sum + val * distribution[i], 0) / total;
+}
+
+// Funzione per calcolare la varianza teorica
+function calculateVariance(values, distribution, mean) {
+    const total = distribution.reduce((sum, val) => sum + val, 0);
+    return values.reduce((variance, val, i) => variance + distribution[i] * Math.pow(val - mean, 2), 0) / total;
+}
+
+// Funzione principale per tracciare il grafico
+function plotChart(values, theoretical, sampleSize) {
+    // Genera i campioni empirici
+    const empiricalData = generateEmpiricalData(values, theoretical, sampleSize);
+
+    // Conta la frequenza dei valori empirici
+    const empiricalCounts = values.map(value => empiricalData.filter(v => v === value).length);
+    const totalEmpirical = empiricalCounts.reduce((sum, val) => sum + val, 0);
+    const empiricalPercentages = empiricalCounts.map(val => (val / totalEmpirical) * 100);
+
+    // Calcola le percentuali teoriche
     const totalTheoretical = theoretical.reduce((sum, val) => sum + val, 0);
     const normalizedTheoretical = theoretical.map(val => val / totalTheoretical);
-
-    // Converti i dati empirici e teorici in percentuali
-    const totalEmpirical = empirical.reduce((sum, val) => sum + val, 0);
-    const empiricalPercentages = empirical.map(val => (val / totalEmpirical) * 100);
     const theoreticalPercentages = normalizedTheoretical.map(val => val * 100);
+
+    // Calcola statistiche empiriche
+    const empiricalStats = calculateEmpiricalStats(empiricalData);
+    const empiricalMean = empiricalStats.mean.toFixed(3);
+    const empiricalVariance = empiricalStats.variance.toFixed(3);
+
+    // Calcola statistiche teoriche
+    const theoreticalMean = calculateMean(values, normalizedTheoretical, 1).toFixed(3);
+    const theoreticalVariance = calculateVariance(values, normalizedTheoretical, theoreticalMean).toFixed(3);
+
+    // Mostra le statistiche nella UI
+    document.getElementById('stats').innerHTML = `
+        <strong>Statistics:</strong><br>
+        Empirical Mean: ${empiricalMean} vs Theoretical Mean: ${theoreticalMean}<br>
+        Empirical Variance: ${empiricalVariance} vs Theoretical Variance: ${theoreticalVariance}
+    `;
 
     // Ottieni il contesto del canvas
     const ctx = document.getElementById('distributionChart').getContext('2d');
+
+    // Distruggi il grafico precedente, se esiste
+    if (myChart) {
+        myChart.destroy();
+    }
 
     // Crea un nuovo grafico
     myChart = new Chart(ctx, {
@@ -51,12 +120,11 @@ function plotChart(values, theoretical, empirical) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
                         }
                     }
                 },
-                // Aggiungi etichette sopra ogni colonna
                 datalabels: {
                     anchor: 'end',
                     align: 'top',
@@ -83,36 +151,8 @@ function plotChart(values, theoretical, empirical) {
                 }
             }
         },
-        plugins: [ChartDataLabels] // Plugin per mostrare le percentuali
+        plugins: [ChartDataLabels] // Plugin per mostrare le percentuali sopra le colonne
     });
-
-    // Calcola la media e la varianza
-    const empiricalMean = calculateMean(values, empirical, totalEmpirical).toFixed(3);
-    const theoreticalMean = calculateMean(values, normalizedTheoretical, 1).toFixed(3);
-    const empiricalVariance = calculateVariance(values, empirical, empiricalMean).toFixed(3);
-    const theoreticalVariance = calculateVariance(values, normalizedTheoretical, theoreticalMean).toFixed(3);
-
-    // Mostra le statistiche sotto il grafico
-    document.getElementById('stats').innerHTML = `
-        <strong>Statistics:</strong><br>
-        <ul>
-            <li>Empirical Mean: ${empiricalMean}</li>
-            <li>Theoretical Mean: ${theoreticalMean}</li>
-            <li>Empirical Variance: ${empiricalVariance}</li>
-            <li>Theoretical Variance: ${theoreticalVariance}</li>
-        </ul>
-    `;
-}
-
-// Funzione per calcolare la media
-function calculateMean(values, distribution, total) {
-    return values.reduce((sum, val, i) => sum + val * distribution[i], 0) / total;
-}
-
-// Funzione per calcolare la varianza
-function calculateVariance(values, distribution, mean) {
-    const total = distribution.reduce((sum, val) => sum + val, 0);
-    return values.reduce((variance, val, i) => variance + distribution[i] * Math.pow(val - mean, 2), 0) / total;
 }
 
 // Event listener per il form
@@ -130,11 +170,10 @@ document.getElementById('dataForm').addEventListener('submit', function (event) 
         return;
     }
 
-    // Calcola distribuzione empirica per un campione
+    // Leggi il sample size
     const sampleSize = parseInt(document.getElementById('sampleSize').value, 10);
-    const empirical = probabilities.map(p => Math.round(p * sampleSize));
 
     // Passa i dati alla funzione plotChart
-    plotChart(values, probabilities, empirical);
+    plotChart(values, probabilities, sampleSize);
 });
 
