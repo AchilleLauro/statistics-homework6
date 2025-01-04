@@ -121,4 +121,3 @@ document.getElementById('dataForm').addEventListener('submit', function (event) 
     // Passa i dati alla funzione plotChart
     plotChart(values, probabilities, empirical);
 });
-
