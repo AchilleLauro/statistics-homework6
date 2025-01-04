@@ -55,6 +55,16 @@ function plotChart(values, theoretical, empirical) {
                             return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
                         }
                     }
+                },
+                // Aggiungi etichette sopra ogni colonna
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (value) => value.toFixed(2) + '%',
+                    font: {
+                        weight: 'bold'
+                    },
+                    color: 'black'
                 }
             },
             scales: {
@@ -72,7 +82,8 @@ function plotChart(values, theoretical, empirical) {
                     }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels] // Plugin per mostrare le percentuali
     });
 
     // Calcola la media e la varianza
