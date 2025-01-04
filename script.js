@@ -95,8 +95,12 @@ function plotChart(values, theoretical, empirical) {
     // Mostra le statistiche sotto il grafico
     document.getElementById('stats').innerHTML = `
         <strong>Statistics:</strong><br>
-        Empirical Mean: ${empiricalMean} vs Theoretical Mean: ${theoreticalMean}<br>
-        Empirical Variance: ${empiricalVariance} vs Theoretical Variance: ${theoreticalVariance}
+        <ul>
+            <li>Empirical Mean: ${empiricalMean}</li>
+            <li>Theoretical Mean: ${theoreticalMean}</li>
+            <li>Empirical Variance: ${empiricalVariance}</li>
+            <li>Theoretical Variance: ${theoreticalVariance}</li>
+        </ul>
     `;
 }
 
