@@ -80,6 +80,32 @@
         </ul>
     </section>
 
+     <section>
+        <h2>Input Distribution Data</h2>
+        <form id="dataForm">
+            <div>
+                <label for="values">Values (comma-separated):</label>
+                <input type="text" id="values" placeholder="e.g., 0,1,2,3" required>
+            </div>
+            <div>
+                <label for="probabilities">Probabilities (comma-separated):</label>
+                <input type="text" id="probabilities" placeholder="e.g., 0.1,0.3,0.4,0.2" required>
+            </div>
+            <div>
+                <label for="sampleSize">Sample Size:</label>
+                <input type="number" id="sampleSize" value="1000" required>
+            </div>
+            <button type="submit">Generate and Plot</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Distribution Graphs</h2>
+        <div class="chart-container" style="position: relative; height:500px; width:600px;">
+            <canvas id="distributionChart"></canvas>
+        </div>
+    </section>
+
     <footer>
         <p>&copy; 2025, Probability and Statistics Research</p>
     </footer>
