@@ -8,7 +8,7 @@ function plotChart(values, theoretical, empirical) {
         myChart.destroy();
     }
 
-    // Normalizza le probabilità teoriche
+    // Normalizza le probabilità teoriche (assicurati che sommino a 1)
     const totalTheoretical = theoretical.reduce((sum, val) => sum + val, 0);
     const normalizedTheoretical = theoretical.map(val => val / totalTheoretical);
 
@@ -27,14 +27,14 @@ function plotChart(values, theoretical, empirical) {
             labels: values,
             datasets: [
                 {
-                    label: 'Empirical Distribution',
+                    label: 'Empirical Distribution (%)',
                     data: empiricalPercentages,
                     backgroundColor: 'rgba(153, 102, 255, 0.7)',
                     borderColor: 'rgba(153, 102, 255, 1)',
                     borderWidth: 1
                 },
                 {
-                    label: 'Theoretical Distribution',
+                    label: 'Theoretical Distribution (%)',
                     data: theoreticalPercentages,
                     backgroundColor: 'rgba(75, 192, 192, 0.7)',
                     borderColor: 'rgba(75, 192, 192, 1)',
@@ -83,8 +83,9 @@ function plotChart(values, theoretical, empirical) {
 
     // Mostra le statistiche sotto il grafico
     document.getElementById('stats').innerHTML = `
-        Empirical mean: ${empiricalMean} vs Theoretical mean: ${theoreticalMean}<br>
-        Empirical variance: ${empiricalVariance} vs Theoretical variance: ${theoreticalVariance}
+        <strong>Statistics:</strong><br>
+        Empirical Mean: ${empiricalMean} vs Theoretical Mean: ${theoreticalMean}<br>
+        Empirical Variance: ${empiricalVariance} vs Theoretical Variance: ${theoreticalVariance}
     `;
 }
 
@@ -121,3 +122,4 @@ document.getElementById('dataForm').addEventListener('submit', function (event) 
     // Passa i dati alla funzione plotChart
     plotChart(values, probabilities, empirical);
 });
+
