@@ -1,12 +1,11 @@
- let myChart; // Variabile globale per il grafico
+let myChart; // Variabile globale per il grafico
 
 function plotChart(values, theoretical, empirical) {
-    const ctx = document.getElementById('distributionChart').getContext('2d');
+    // Rimuovi il canvas esistente e creane uno nuovo
+    const container = document.querySelector('.chart-container');
+    container.innerHTML = '<canvas id="distributionChart"></canvas>';
     
-    // Distruggi il grafico esistente, se presente
-    if (myChart) {
-        myChart.destroy();
-    }
+    const ctx = document.getElementById('distributionChart').getContext('2d');
 
     // Crea un nuovo grafico
     myChart = new Chart(ctx, {
@@ -56,3 +55,4 @@ function plotChart(values, theoretical, empirical) {
         }
     });
 }
+
