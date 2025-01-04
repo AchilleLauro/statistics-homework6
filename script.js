@@ -1,146 +1,97 @@
-const serverPenCtx = document.getElementById('serverPenetrationChart').getContext('2d');
-const attackerDistCtx = document.getElementById('attackerDistributionChart').getContext('2d');
-let serverPenetrationGraph, attackerDistGraph;
-
-function createPenetrationData(numAttackers, lambda, timeSteps) {
-    const dt = 1 / timeSteps;  // Intervallo temporale infinitesimale
-    const attackResults = Array.from({ length: numAttackers }, () => [0]);
-    const finalPenetrations = Array(numAttackers).fill(0);
-    const savedScores = [];
-
-    for (let attacker = 0; attacker < numAttackers; attacker++) {
-        let penetrations = 0;
-        for (let step = 1; step <= timeSteps; step++) {
-            // Probabilità di attacco in questo intervallo dt
-            const attackSuccess = Math.random() < lambda * dt;
-            penetrations += attackSuccess ? 1 : 0;
-            attackResults[attacker].push(penetrations);
-
-            if (step === timeSteps) {
-                savedScores.push(penetrations);
-            }
-        }
-        finalPenetrations[attacker] = penetrations;
-    }
-
-    const penetrationDistribution = finalPenetrations.reduce((acc, numPenetrations) => {
-        acc[numPenetrations] = (acc[numPenetrations] || 0) + 1;
-        return acc;
-    }, {});
-
-    const mean = finalPenetrations.reduce((sum, x) => sum + x, 0) / numAttackers;
-    let variance = finalPenetrations.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0) / numAttackers;
-
-    return { attackResults, penetrationDistribution, mean, variance, savedScores };
-}
-
-function drawPenetrationGraph(numAttackers, lambda, timeSteps) {
-    const { attackResults, penetrationDistribution, mean, variance, savedScores } = createPenetrationData(numAttackers, lambda, timeSteps);
-    const labels = Array.from({ length: timeSteps }, (_, i) => `${i + 1}`);
-    const attackerDatasets = attackResults.map((attackerData, idx) => ({
-        label: `Attacker ${idx + 1}`,
-        data: attackerData,
-        borderColor: `rgba(${Math.random() * 200 + 55}, ${Math.random() * 200 + 55}, ${Math.random() * 200 + 55}, 0.9)`,
-        fill: false,
-        stepped: true,
-        borderWidth: 2
-    }));
-
-    const yMin = 0;
-    const yMax = timeSteps;
-
-    if (serverPenetrationGraph) {
-        serverPenetrationGraph.data.labels = ['Start', ...labels];
-        serverPenetrationGraph.data.datasets = attackerDatasets;
-        serverPenetrationGraph.options.scales.y.min = yMin;
-        serverPenetrationGraph.options.scales.y.max = yMax;
-        serverPenetrationGraph.update();
-    } else {
-        serverPenetrationGraph = new Chart(serverPenCtx, {
-            type: 'line',
-            data: {
-                labels: ['Start', ...labels],
-                datasets: attackerDatasets
-            },
-            options: {
-                scales: {
-                    y: { 
-                        min: yMin,
-                        max: yMax,
-                        grid: { display: false }, 
-                        ticks: { color: '#999' } 
-                    },
-                    x: { grid: { display: false }, ticks: { color: '#999' } }
-                },
-                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } }
-            }
-        });
-    }
-
-    drawAttackerDistribution(penetrationDistribution, timeSteps, mean, variance, savedScores);
-}
-
-function drawAttackerDistribution(penetrationDistribution, timeSteps, mean, variance, savedScores) {
-    let minXValue = Math.min(...savedScores);
-    let maxXValue = Math.max(...savedScores);
-
-    const stepSize = 1;
-    const labels = Array.from({ length: Math.ceil((maxXValue - minXValue) / stepSize) + 1 }, (_, i) => (minXValue + i * stepSize).toFixed(1));
-
-    const distData = labels.map(label => {
-        const floatLabel = parseFloat(label);
-        return savedScores.filter(score => Math.abs(score - floatLabel) < stepSize / 2).length;
-    });
-
-    const maxYValue = Math.max(...distData);
-
-    if (attackerDistGraph) {
-        attackerDistGraph.data.labels = labels;
-        attackerDistGraph.data.datasets[0].data = distData;
-        attackerDistGraph.options.scales.y.max = maxYValue;
-        attackerDistGraph.update();
-    } else {
-        attackerDistGraph = new Chart(attackerDistCtx, {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    data: distData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        min: 0,
-                        max: maxYValue,
-                        grid: { display: false }, 
-                        ticks: { color: '#999' }
-                    },
-                    x: {
-                        grid: { display: false }, 
-                        ticks: { color: '#999' }
+  function generateSamples(size, values, probabilities) {
+            const samples = [];
+            for (let i = 0; i < size; i++) {
+                let r = Math.random();
+                let cumulative = 0;
+                for (let j = 0; j < values.length; j++) {
+                    cumulative += probabilities[j];
+                    if (r < cumulative) {
+                        samples.push(values[j]);
+                        break;
                     }
-                },
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { mode: 'index', intersect: false } 
                 }
             }
+            return samples;
+        }
+
+        // Calculate empirical probabilities
+        function calculateEmpiricalProbabilities(samples, values) {
+            const counts = values.map(val => samples.filter(x => x === val).length);
+            const total = samples.length;
+            return counts.map(count => count / total);
+        }
+
+        // Plot the chart using Chart.js
+        function plotChart(values, theoretical, empirical) {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: values,
+                    datasets: [
+                        {
+                            label: 'Empirical Distribution',
+                            data: empirical,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Theoretical Distribution',
+                            data: theoretical,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Empirical vs Theoretical Distributions'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Probability'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Values'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('dataForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Get user inputs
+            const values = document.getElementById('values').value.split(',').map(Number);
+            const probabilities = document.getElementById('probabilities').value.split(',').map(Number);
+            const sampleSize = parseInt(document.getElementById('sampleSize').value, 10);
+
+            // Validate probabilities
+            const sumProbabilities = probabilities.reduce((a, b) => a + b, 0);
+            if (Math.abs(sumProbabilities - 1) > 0.001) {
+                alert('Probabilities must sum to 1.');
+                return;
+            }
+
+            // Generate samples and calculate empirical probabilities
+            const samples = generateSamples(sampleSize, values, probabilities);
+            const empiricalProbabilities = calculateEmpiricalProbabilities(samples, values);
+
+            // Plot the chart
+            plotChart(values, probabilities, empiricalProbabilities);
         });
-    }
-
-    document.getElementById('mean').textContent = `Mean: ${mean.toFixed(4)}`;
-    document.getElementById('variance').textContent = `Variance: ${variance.toFixed(4)}`;
-}
-
-document.getElementById('runSimulationBtn').addEventListener('click', function() {
-    const numAttackers = parseInt(document.getElementById('hackerCount').value);
-    const lambda = parseFloat(document.getElementById('attackRate').value);
-    const timeSteps = parseInt(document.getElementById('timeSteps').value);
-    drawPenetrationGraph(numAttackers, lambda, timeSteps);
-});
-
-drawPenetrationGraph(50, 50, 70);
