@@ -1,10 +1,13 @@
-let myChart; // Variabile globale per il grafico
+// Variabile globale per il grafico
+let myChart;
 
 function plotChart(values, theoretical, empirical) {
-    // Rimuovi il canvas esistente e creane uno nuovo
-    const container = document.querySelector('.chart-container');
-    container.innerHTML = '<canvas id="distributionChart"></canvas>';
-    
+    // Distruggi il grafico esistente, se presente
+    if (myChart) {
+        myChart.destroy();
+    }
+
+    // Ottieni il contesto del canvas
     const ctx = document.getElementById('distributionChart').getContext('2d');
 
     // Crea un nuovo grafico
@@ -55,4 +58,21 @@ function plotChart(values, theoretical, empirical) {
         }
     });
 }
+
+// Event listener per il form
+document.getElementById('dataForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    // Leggi i valori e le probabilità inseriti
+    const values = document.getElementById('values').value.split(',').map(v => v.trim());
+    const probabilities = document.getElementById('probabilities').value.split(',').map(p => parseFloat(p.trim()));
+
+    // Calcola distribuzione empirica per un campione
+    const sampleSize = parseInt(document.getElementById('sampleSize').value, 10);
+    const empirical = probabilities.map(p => Math.round(p * sampleSize));
+
+    // Passa i dati alla funzione plotChart
+    plotChart(values, probabilities, empirical);
+});
+
 
