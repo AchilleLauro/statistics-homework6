@@ -1,55 +1,116 @@
-// Variabile globale per il grafico delle medie campionarie
-let samplingChart;
+// Variabile globale per il grafico
+let myChart;
 
-// Funzione per generare campioni e calcolare medie campionarie
-function generateSamplingAverages(values, probabilities, m, n) {
-    const sampleMeans = [];
-    for (let i = 0; i < m; i++) {
-        const sample = generateEmpiricalData(values, probabilities, n);
-        const sampleStats = calculateEmpiricalStats(sample);
-        sampleMeans.push(sampleStats.mean);
+// Funzione per generare campioni empirici da una distribuzione teorica
+function generateEmpiricalData(values, probabilities, sampleSize) {
+    const empiricalData = [];
+    for (let i = 0; i < sampleSize; i++) {
+        const random = Math.random();
+        let cumulativeProbability = 0;
+        for (let j = 0; j < probabilities.length; j++) {
+            cumulativeProbability += probabilities[j];
+            if (random <= cumulativeProbability) {
+                empiricalData.push(values[j]);
+                break;
+            }
+        }
     }
-    return sampleMeans;
+    return empiricalData;
 }
 
-// Funzione per tracciare il grafico delle medie campionarie
-function plotSamplingDistribution(sampleMeans, theoreticalMean, theoreticalVariance) {
-    const ctx = document.getElementById('distributionChart').getContext('2d');
+// Funzione per calcolare media e varianza dai dati simulati (empiriche)
+function calculateEmpiricalStats(data) {
+    let mean = 0;
+    let variance = 0;
+    const n = data.length;
 
-    // Calcola media e varianza delle medie campionarie
-    const empiricalStats = calculateEmpiricalStats(sampleMeans);
+    // Calcolo della media empirica
+    data.forEach((value) => {
+        mean += value;
+    });
+    mean /= n;
+
+    // Calcolo della varianza empirica
+    data.forEach((value) => {
+        variance += Math.pow(value - mean, 2);
+    });
+    variance /= n;
+
+    return { mean, variance };
+}
+
+// Funzione per calcolare la media teorica
+function calculateTheoreticalMean(values, probabilities) {
+    return values.reduce((sum, val, i) => sum + val * probabilities[i], 0);
+}
+
+// Funzione per calcolare la varianza teorica
+function calculateTheoreticalVariance(values, probabilities, mean) {
+    return values.reduce((sum, val, i) => sum + probabilities[i] * Math.pow(val - mean, 2), 0);
+}
+
+// Funzione principale per tracciare il grafico
+function plotChart(values, theoretical, sampleSize) {
+    // Genera i campioni empirici
+    const empiricalData = generateEmpiricalData(values, theoretical, sampleSize);
+
+    // Conta la frequenza dei valori empirici
+    const empiricalCounts = values.map(value => empiricalData.filter(v => v === value).length);
+    const totalEmpirical = empiricalCounts.reduce((sum, val) => sum + val, 0);
+    const empiricalPercentages = empiricalCounts.map(val => (val / totalEmpirical) * 100);
+
+    // Calcola le percentuali teoriche
+    const totalTheoretical = theoretical.reduce((sum, val) => sum + val, 0);
+    const normalizedTheoretical = theoretical.map(val => val / totalTheoretical);
+    const theoreticalPercentages = normalizedTheoretical.map(val => val * 100);
+
+    // Calcola statistiche empiriche
+    const empiricalStats = calculateEmpiricalStats(empiricalData);
     const empiricalMean = empiricalStats.mean.toFixed(3);
     const empiricalVariance = empiricalStats.variance.toFixed(3);
 
+    // Calcola statistiche teoriche
+    const theoreticalMean = calculateTheoreticalMean(values, normalizedTheoretical).toFixed(3);
+    const theoreticalVariance = calculateTheoreticalVariance(values, normalizedTheoretical, theoreticalMean).toFixed(3);
+
     // Mostra le statistiche nella UI
     document.getElementById('stats').innerHTML = `
-        <strong>Sampling Distribution Statistics:</strong><br>
+        <strong>Statistics:</strong><br>
         <ul>
-            <li>Empirical Mean of Sample Means: ${empiricalMean}</li>
+            <li>Empirical Mean: ${empiricalMean}</li>
             <li>Theoretical Mean: ${theoreticalMean}</li>
-            <li>Empirical Variance of Sample Means: ${empiricalVariance}</li>
-            <li>Theoretical Variance of Sample Means: ${(theoreticalVariance / sampleMeans.length).toFixed(3)}</li>
+            <li>Empirical Variance: ${empiricalVariance}</li>
+            <li>Theoretical Variance: ${theoreticalVariance}</li>
         </ul>
     `;
 
+    // Ottieni il contesto del canvas
+    const ctx = document.getElementById('distributionChart').getContext('2d');
+
     // Distruggi il grafico precedente, se esiste
-    if (samplingChart) {
-        samplingChart.destroy();
+    if (myChart) {
+        myChart.destroy();
     }
 
-    // Crea il nuovo grafico
-    samplingChart = new Chart(ctx, {
-        type: 'histogram',
+    // Crea un nuovo grafico
+    myChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: sampleMeans,
+            labels: values,
             datasets: [
                 {
-                    label: 'Sample Means',
-                    data: sampleMeans,
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    binWidth: 0.1 // Regola la larghezza dei bin per il grafico a istogramma
+                    label: 'Empirical Distribution (%)',
+                    data: empiricalPercentages,
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)', // Rosso per la distribuzione empirica
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Theoretical Distribution (%)',
+                    data: theoreticalPercentages,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blu per la distribuzione teorica
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
                 }
             ]
         },
@@ -58,28 +119,46 @@ function plotSamplingDistribution(sampleMeans, theoreticalMean, theoreticalVaria
             plugins: {
                 title: {
                     display: true,
-                    text: 'Distribution of Sample Means'
+                    text: 'Empirical vs Theoretical Distributions (Percentage)'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
+                        }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (value) => value.toFixed(2) + '%',
+                    font: {
+                        weight: 'bold'
+                    },
+                    color: 'white' // Percentuale in bianco
                 }
             },
             scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Percentage (%)'
+                    }
+                },
                 x: {
                     title: {
                         display: true,
-                        text: 'Sample Mean'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Frequency'
+                        text: 'Outcomes'
                     }
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels] // Plugin per mostrare le percentuali sopra le colonne
     });
 }
 
-// Event listener per il form modificato
+// Event listener per il form
 document.getElementById('dataForm').addEventListener('submit', function (event) {
     event.preventDefault();
 
@@ -94,18 +173,9 @@ document.getElementById('dataForm').addEventListener('submit', function (event) 
         return;
     }
 
-    // Leggi il sample size e il numero di campioni
+    // Leggi il sample size
     const sampleSize = parseInt(document.getElementById('sampleSize').value, 10);
-    const numberOfSamples = 1000; // Puoi modificare questo valore
 
-    // Genera le medie campionarie
-    const sampleMeans = generateSamplingAverages(values, probabilities, numberOfSamples, sampleSize);
-
-    // Calcola le statistiche teoriche
-    const theoreticalMean = calculateTheoreticalMean(values, probabilities);
-    const theoreticalVariance = calculateTheoreticalVariance(values, probabilities, theoreticalMean);
-
-    // Traccia il grafico delle medie campionarie
-    plotSamplingDistribution(sampleMeans, theoreticalMean, theoreticalVariance);
+    // Passa i dati alla funzione plotChart
+    plotChart(values, probabilities, sampleSize);
 });
-
