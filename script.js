@@ -18,19 +18,19 @@ function generateEmpiricalData(values, probabilities, sampleSize) {
     return empiricalData;
 }
 
-// Funzione per calcolare media e varianza dai dati simulati
+// Funzione per calcolare media e varianza dai dati simulati (empiriche)
 function calculateEmpiricalStats(data) {
     let mean = 0;
     let variance = 0;
     const n = data.length;
 
-    // Calcolo della media
+    // Calcolo della media empirica
     data.forEach((value) => {
         mean += value;
     });
     mean /= n;
 
-    // Calcolo della varianza
+    // Calcolo della varianza empirica
     data.forEach((value) => {
         variance += Math.pow(value - mean, 2);
     });
@@ -40,14 +40,13 @@ function calculateEmpiricalStats(data) {
 }
 
 // Funzione per calcolare la media teorica
-function calculateMean(values, distribution, total) {
-    return values.reduce((sum, val, i) => sum + val * distribution[i], 0) / total;
+function calculateTheoreticalMean(values, probabilities) {
+    return values.reduce((sum, val, i) => sum + val * probabilities[i], 0);
 }
 
 // Funzione per calcolare la varianza teorica
-function calculateVariance(values, distribution, mean) {
-    const total = distribution.reduce((sum, val) => sum + val, 0);
-    return values.reduce((variance, val, i) => variance + distribution[i] * Math.pow(val - mean, 2), 0) / total;
+function calculateTheoreticalVariance(values, probabilities, mean) {
+    return values.reduce((sum, val, i) => sum + probabilities[i] * Math.pow(val - mean, 2), 0);
 }
 
 // Funzione principale per tracciare il grafico
@@ -71,14 +70,18 @@ function plotChart(values, theoretical, sampleSize) {
     const empiricalVariance = empiricalStats.variance.toFixed(3);
 
     // Calcola statistiche teoriche
-    const theoreticalMean = calculateMean(values, normalizedTheoretical, 1).toFixed(3);
-    const theoreticalVariance = calculateVariance(values, normalizedTheoretical, theoreticalMean).toFixed(3);
+    const theoreticalMean = calculateTheoreticalMean(values, normalizedTheoretical).toFixed(3);
+    const theoreticalVariance = calculateTheoreticalVariance(values, normalizedTheoretical, theoreticalMean).toFixed(3);
 
     // Mostra le statistiche nella UI
     document.getElementById('stats').innerHTML = `
         <strong>Statistics:</strong><br>
-        Empirical Mean: ${empiricalMean} vs Theoretical Mean: ${theoreticalMean}<br>
-        Empirical Variance: ${empiricalVariance} vs Theoretical Variance: ${theoreticalVariance}
+        <ul>
+            <li>Empirical Mean: ${empiricalMean}</li>
+            <li>Theoretical Mean: ${theoreticalMean}</li>
+            <li>Empirical Variance: ${empiricalVariance}</li>
+            <li>Theoretical Variance: ${theoreticalVariance}</li>
+        </ul>
     `;
 
     // Ottieni il contesto del canvas
@@ -98,15 +101,15 @@ function plotChart(values, theoretical, sampleSize) {
                 {
                     label: 'Empirical Distribution (%)',
                     data: empiricalPercentages,
-                    backgroundColor: 'rgba(153, 102, 255, 0.7)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)', // Rosso per la distribuzione empirica
+                    borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
                 },
                 {
                     label: 'Theoretical Distribution (%)',
                     data: theoreticalPercentages,
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blu per la distribuzione teorica
+                    borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
                 }
             ]
@@ -132,7 +135,7 @@ function plotChart(values, theoretical, sampleSize) {
                     font: {
                         weight: 'bold'
                     },
-                    color: 'black'
+                    color: 'white' // Percentuale in bianco
                 }
             },
             scales: {
@@ -176,4 +179,3 @@ document.getElementById('dataForm').addEventListener('submit', function (event) 
     // Passa i dati alla funzione plotChart
     plotChart(values, probabilities, sampleSize);
 });
-
