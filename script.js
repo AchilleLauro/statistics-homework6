@@ -18,7 +18,6 @@ function generateEmpiricalData(values, probabilities, sampleSize) {
     return empiricalData;
 }
 
-// Funzione per calcolare media e varianza dai dati simulati (empiriche)
 function calculateEmpiricalStats(data) {
     let mean = 0;
     let variance = 0;
@@ -84,10 +83,8 @@ function plotChart(values, theoretical, sampleSize) {
         </ul>
     `;
 
-    // Ottieni il contesto del canvas
     const ctx = document.getElementById('distributionChart').getContext('2d');
 
-    // Distruggi il grafico precedente, se esiste
     if (myChart) {
         myChart.destroy();
     }
@@ -162,20 +159,16 @@ function plotChart(values, theoretical, sampleSize) {
 document.getElementById('dataForm').addEventListener('submit', function (event) {
     event.preventDefault();
 
-    // Leggi i valori e le probabilità inseriti
     const values = document.getElementById('values').value.split(',').map(v => parseFloat(v.trim()));
     const probabilities = document.getElementById('probabilities').value.split(',').map(p => parseFloat(p.trim()));
 
-    // Controlla che le probabilità siano valide
     const totalProbability = probabilities.reduce((sum, p) => sum + p, 0);
     if (Math.abs(totalProbability - 1) > 0.001) {
         alert('Le probabilità teoriche devono sommare a 1. Correggi i dati inseriti.');
         return;
     }
 
-    // Leggi il sample size
     const sampleSize = parseInt(document.getElementById('sampleSize').value, 10);
 
-    // Passa i dati alla funzione plotChart
     plotChart(values, probabilities, sampleSize);
 });
